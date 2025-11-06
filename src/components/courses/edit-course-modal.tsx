@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Edit, X, Tag } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Label } from "../ui/label";
 import Link from "next/link";
 
@@ -45,7 +45,6 @@ export function EditCourseModal({ course, courseId }: EditCourseModalProps) {
   });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { toast } = useToast();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -72,18 +71,11 @@ export function EditCourseModal({ course, courseId }: EditCourseModalProps) {
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error("Failed to update course");
-      toast({
-        title: "Course updated",
-        description: "Your course has been updated successfully.",
-      });
+      toast.success("Course updated successfully.");
       setOpen(false);
       router.refresh();
     } catch (err) {
-      toast({
-        title: "Error",
-        description: err instanceof Error ? err.message : "Something went wrong",
-        variant: "destructive",
-      });
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }

@@ -1,130 +1,137 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Star, Search, MessageSquare, TrendingUp, Award } from 'lucide-react'
-import { format } from 'date-fns'
-import Link from 'next/link'
-import { toast } from '@/hooks/use-toast'
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Star, Search, MessageSquare, TrendingUp, Award } from "lucide-react";
+import { format } from "date-fns";
+import Link from "next/link";
+import { toast } from "sonner";
 
 interface Review {
-  _id: string
-  rating: number
-  comment: string
-  createdAt: string
+  _id: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
   student: {
-    _id: string
-    name: string
-  }
+    _id: string;
+    name: string;
+  };
   course: {
-    _id: string
-    name: string
-  }
+    _id: string;
+    name: string;
+  };
 }
 
 interface Course {
-  _id: string
-  name: string
+  _id: string;
+  name: string;
 }
 
 interface ReviewStats {
-  totalReviews: number
-  averageRating: number
+  totalReviews: number;
+  averageRating: number;
   ratingDistribution: {
-    5: number
-    4: number
-    3: number
-    2: number
-    1: number
-  }
+    5: number;
+    4: number;
+    3: number;
+    2: number;
+    1: number;
+  };
 }
 
 export default function TeacherReviewsComponent() {
-  const [reviews, setReviews] = useState<Review[]>([])
-  const [courses, setCourses] = useState<Course[]>([])
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [stats, setStats] = useState<ReviewStats>({
     totalReviews: 0,
     averageRating: 0,
-    ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
-  })
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCourse, setSelectedCourse] = useState<string>('all')
-  const [ratingFilter, setRatingFilter] = useState<string>('all')
+    ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+  });
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState<string>("all");
+  const [ratingFilter, setRatingFilter] = useState<string>("all");
 
   useEffect(() => {
-    fetchReviews()
-    fetchCourses()
-  }, [])
+    fetchReviews();
+    fetchCourses();
+  }, []);
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch('/api/teacher/reviews')
+      const response = await fetch("/api/teacher/reviews");
       if (response.ok) {
-        const data = await response.json()
-        setReviews(data.reviews)
-        setStats(data.stats)
+        const data = await response.json();
+        setReviews(data.reviews);
+        setStats(data.stats);
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to fetch reviews",
-          variant: "destructive"
-        })
+        toast.error("Failed to fetch reviews");
       }
     } catch (error) {
-      console.error('Error fetching reviews:', error)
-      toast({
-        title: "Error",
-        description: "Failed to fetch reviews",
-        variant: "destructive"
-      })
+      console.error("Error fetching reviews:", error);
+      toast.error("Failed to fetch reviews");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const fetchCourses = async () => {
     try {
-      const response = await fetch('/api/teacher/courses')
+      const response = await fetch("/api/teacher/courses");
       if (response.ok) {
-        const data = await response.json()
-        setCourses(data.courses)
+        const data = await response.json();
+        setCourses(data.courses);
       }
     } catch (error) {
-      console.error('Error fetching courses:', error)
+      console.error("Error fetching courses:", error);
     }
-  }
+  };
 
   // Filter reviews based on search term, course, and rating
-  const filteredReviews = reviews.filter(review => {
-    const matchesSearch = review.comment.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         review.student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         review.course.name.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesCourse = selectedCourse === 'all' || review.course._id === selectedCourse
-    const matchesRating = ratingFilter === 'all' || review.rating.toString() === ratingFilter
+  const filteredReviews = reviews.filter((review) => {
+    const matchesSearch =
+      review.comment.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      review.student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      review.course.name.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesSearch && matchesCourse && matchesRating
-  })
+    const matchesCourse =
+      selectedCourse === "all" || review.course._id === selectedCourse;
+    const matchesRating =
+      ratingFilter === "all" || review.rating.toString() === ratingFilter;
+
+    return matchesSearch && matchesCourse && matchesRating;
+  });
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
         key={i}
         className={`w-4 h-4 ${
-          i < rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'
+          i < rating ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
         }`}
       />
-    ))
-  }
+    ));
+  };
 
   const getRatingDistributionPercentage = (count: number) => {
-    return stats.totalReviews > 0 ? (count / stats.totalReviews) * 100 : 0
-  }
+    return stats.totalReviews > 0 ? (count / stats.totalReviews) * 100 : 0;
+  };
 
   if (loading) {
     return (
@@ -134,7 +141,7 @@ export default function TeacherReviewsComponent() {
           <p>Loading reviews...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -143,7 +150,9 @@ export default function TeacherReviewsComponent() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Course Reviews</h1>
-          <p className="text-muted-foreground">Manage and analyze student feedback</p>
+          <p className="text-muted-foreground">
+            Manage and analyze student feedback
+          </p>
         </div>
         <Button asChild variant="outline">
           <Link href="/teacher/dashboard">Back to Dashboard</Link>
@@ -157,7 +166,9 @@ export default function TeacherReviewsComponent() {
             <div className="flex items-center space-x-2">
               <MessageSquare className="h-8 w-8 text-blue-600" />
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Reviews</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Total Reviews
+                </p>
                 <p className="text-2xl font-bold">{stats.totalReviews}</p>
               </div>
             </div>
@@ -169,8 +180,12 @@ export default function TeacherReviewsComponent() {
             <div className="flex items-center space-x-2">
               <Star className="h-8 w-8 text-yellow-600" />
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Average Rating</p>
-                <p className="text-2xl font-bold">{stats.averageRating.toFixed(1)}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Average Rating
+                </p>
+                <p className="text-2xl font-bold">
+                  {stats.averageRating.toFixed(1)}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -181,8 +196,12 @@ export default function TeacherReviewsComponent() {
             <div className="flex items-center space-x-2">
               <Award className="h-8 w-8 text-green-600" />
               <div>
-                <p className="text-sm font-medium text-muted-foreground">5-Star Reviews</p>
-                <p className="text-2xl font-bold">{stats.ratingDistribution[5]}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  5-Star Reviews
+                </p>
+                <p className="text-2xl font-bold">
+                  {stats.ratingDistribution[5]}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -193,7 +212,9 @@ export default function TeacherReviewsComponent() {
             <div className="flex items-center space-x-2">
               <TrendingUp className="h-8 w-8 text-purple-600" />
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Positive Reviews</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Positive Reviews
+                </p>
                 <p className="text-2xl font-bold">
                   {stats.ratingDistribution[4] + stats.ratingDistribution[5]}
                 </p>
@@ -218,12 +239,20 @@ export default function TeacherReviewsComponent() {
                   <div
                     className="bg-yellow-500 h-2 rounded-full transition-all duration-300"
                     style={{
-                      width: `${getRatingDistributionPercentage(stats.ratingDistribution[rating as keyof typeof stats.ratingDistribution])}%`
+                      width: `${getRatingDistributionPercentage(
+                        stats.ratingDistribution[
+                          rating as keyof typeof stats.ratingDistribution
+                        ]
+                      )}%`,
                     }}
                   />
                 </div>
                 <span className="text-sm text-muted-foreground w-12">
-                  {stats.ratingDistribution[rating as keyof typeof stats.ratingDistribution]}
+                  {
+                    stats.ratingDistribution[
+                      rating as keyof typeof stats.ratingDistribution
+                    ]
+                  }
                 </span>
               </div>
             ))}
@@ -283,19 +312,21 @@ export default function TeacherReviewsComponent() {
       <Card>
         <CardHeader>
           <CardTitle>Recent Reviews ({filteredReviews.length})</CardTitle>
-          <CardDescription>
-            Student feedback on your courses
-          </CardDescription>
+          <CardDescription>Student feedback on your courses</CardDescription>
         </CardHeader>
         <CardContent>
           {filteredReviews.length === 0 ? (
             <div className="text-center py-12">
               <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-sm font-semibold text-gray-900">No reviews found</h3>
+              <h3 className="mt-2 text-sm font-semibold text-gray-900">
+                No reviews found
+              </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                {searchTerm || selectedCourse !== 'all' || ratingFilter !== 'all'
-                  ? 'Try adjusting your filters'
-                  : 'No students have reviewed your courses yet.'}
+                {searchTerm ||
+                selectedCourse !== "all" ||
+                ratingFilter !== "all"
+                  ? "Try adjusting your filters"
+                  : "No students have reviewed your courses yet."}
               </p>
             </div>
           ) : (
@@ -307,18 +338,22 @@ export default function TeacherReviewsComponent() {
                       <div className="flex items-center space-x-2">
                         <Badge variant="outline">{review.course.name}</Badge>
                         <span className="text-sm text-muted-foreground">•</span>
-                        <span className="text-sm font-medium">{review.student.name}</span>
+                        <span className="text-sm font-medium">
+                          {review.student.name}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <div className="flex">{renderStars(review.rating)}</div>
                         <span className="text-sm text-muted-foreground">
-                          {format(new Date(review.createdAt), 'MMM dd, yyyy')}
+                          {format(new Date(review.createdAt), "MMM dd, yyyy")}
                         </span>
                       </div>
                     </div>
-                    
+
                     {review.comment && (
-                      <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                      <p className="text-gray-700 leading-relaxed">
+                        {review.comment}
+                      </p>
                     )}
                   </CardContent>
                 </Card>
@@ -328,5 +363,5 @@ export default function TeacherReviewsComponent() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

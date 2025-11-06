@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { Plus, Play, Square, Users, Copy } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -60,19 +60,11 @@ export default function TeacherLiveClassDashboard() {
         setLiveClasses(data.liveClasses || [])
       } else {
         console.error('Failed to fetch live classes')
-        toast({
-          title: "Error",
-          description: "Failed to fetch live classes",
-          variant: "destructive"
-        })
+        toast.error("Failed to fetch live classes")
       }
     } catch (error) {
       console.error('Error fetching live classes:', error)
-      toast({
-        title: "Error",
-        description: "Failed to fetch live classes",
-        variant: "destructive"
-      })
+      toast.error("Failed to fetch live classes")
     } finally {
       setLoading(false)
     }
@@ -111,27 +103,17 @@ export default function TeacherLiveClassDashboard() {
           scheduledDate: '',
           duration: 60
         })
-        toast({
-          title: "Success",
-          description: "Live class scheduled successfully"
-        })
+        toast.success("Live class scheduled successfully")
       } else {
         const error = await response.json()
-        toast({
-          title: "Error",
-          description: error.error || "Failed to create live class",
-          variant: "destructive"
-        })
+        toast.error(error.error || "Failed to create live class")
       }
     } catch (error) {
       console.error('Error creating live class:', error)
-      toast({
-        title: "Error",
-        description: "Failed to create live class",
-        variant: "destructive"
-      })
+      toast.error("Failed to create live class")
     }
   }
+
 
   const startLiveClass = async (liveClassId: string) => {
     try {
@@ -156,19 +138,12 @@ export default function TeacherLiveClassDashboard() {
           const streamData = await streamResponse.json()
           setStreamCredentials(streamData)
         }
-        
-        toast({
-          title: "Success",
-          description: "Live class started successfully"
-        })
+
+        toast.success("Live class started successfully")
       }
     } catch (error) {
       console.error('Error starting live class:', error)
-      toast({
-        title: "Error",
-        description: "Failed to start live class",
-        variant: "destructive"
-      })
+      toast.error("Failed to start live class")
     }
   }
 
@@ -186,27 +161,17 @@ export default function TeacherLiveClassDashboard() {
           lc._id === liveClassId ? data.liveClass : lc
         ))
         setStreamCredentials(null)
-        toast({
-          title: "Success",
-          description: "Live class ended successfully"
-        })
+        toast.success("Live class ended successfully")
       }
     } catch (error) {
       console.error('Error ending live class:', error)
-      toast({
-        title: "Error",
-        description: "Failed to end live class",
-        variant: "destructive"
-      })
+      toast.error("Failed to end live class")
     }
   }
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
-    toast({
-      title: "Copied",
-      description: "Stream information copied to clipboard"
-    })
+    toast.info("Stream information copied to clipboard")
   }
 
   const getStatusBadge = (status: string) => {

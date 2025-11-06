@@ -26,7 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { AlertCircle, ShieldCheck } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
@@ -55,7 +55,6 @@ type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 export default function AdminSignIn() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
@@ -96,21 +95,14 @@ export default function AdminSignIn() {
       if (response?.error) {
         setAuthError("Invalid email or password");
       } else {
-        toast({
-          title: "Success",
-          description: "You have been signed in as admin successfully",
-        });
+        toast.success("You have been signed in as admin successfully");
         router.push("/admin/dashboard");
         router.refresh();
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error
-          ? error.message
-          : "An unexpected error occurred",
-        variant: "destructive",
-      });
+      toast.error(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -134,27 +126,18 @@ export default function AdminSignIn() {
       const result = await response.json();
 
       if (response.ok) {
-        toast({
-          title: "Email Sent",
-          description: result.message,
-        });
+        toast.success(result.message);
         setForgotPasswordOpen(false);
         forgotPasswordForm.reset();
       } else {
-        toast({
-          title: "Error",
-          description: result.error || "Failed to send reset email",
-          variant: "destructive",
-        });
+        toast.error(result.error || "Failed to send reset email");
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error
-          ? error.message
-          : "An unexpected error occurred",
-        variant: "destructive",
-      });
+      toast.error(
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred"
+      );
     } finally {
       setForgotPasswordLoading(false);
     }
@@ -231,8 +214,8 @@ export default function AdminSignIn() {
               <DialogHeader>
                 <DialogTitle>Reset Password</DialogTitle>
                 <DialogDescription>
-                  Enter your email address and we&apos;ll send you a link to reset
-                  your password.
+                  Enter your email address and we&apos;ll send you a link to
+                  reset your password.
                 </DialogDescription>
               </DialogHeader>
               <Form {...forgotPasswordForm}>

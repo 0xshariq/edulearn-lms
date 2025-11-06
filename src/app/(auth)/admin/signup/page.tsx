@@ -24,7 +24,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { ShieldCheck } from "lucide-react";
 import { adminValidationSchema } from "@/models/admin";
 import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
@@ -44,7 +44,6 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export default function AdminSignUp() {
   const router = useRouter();
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [adminExists, setAdminExists] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
@@ -58,11 +57,9 @@ export default function AdminSignUp() {
 
         if (data.exists) {
           setAdminExists(true);
-          toast({
-            title: "Admin Already Exists",
-            description: "Only one admin account is allowed in the system.",
-            variant: "destructive",
-          });
+          toast.warning(
+            "Admin Already Exists: Only one admin account is allowed in the system."
+          );
           router.push("/admin/signin");
         }
       } catch (error) {
@@ -109,22 +106,17 @@ export default function AdminSignUp() {
         throw new Error(error.message || "Failed to register");
       }
 
-      toast({
-        title: "Success",
-        description:
-          "Admin account created successfully. Please check your email to verify your account.",
-      });
+      toast.success(
+        "Admin account created successfully. Please check your email to verify your account."
+      );
 
       router.push("/admin/signin");
     } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }

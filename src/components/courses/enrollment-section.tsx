@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Loader2, CheckCircle, BookOpen, RefreshCw } from "lucide-react"
 import { SalePriceBlock, SaleTimer } from "@/components/courses/course-sales"
@@ -38,26 +38,17 @@ export function EnrollmentSection({
 }: EnrollmentSectionProps) {
   const { data: session } = useSession()
   const [isEnrolling, setIsEnrolling] = useState(false)
-  const { toast } = useToast()
   const router = useRouter()
 
   const handleFreeEnrollment = async () => {
     if (!session?.user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to enroll in this course.",
-        variant: "destructive",
-      })
+      toast.warning("Authentication required : Please sign in to enroll in this course.")
       router.push("/role")
       return
     }
 
     if (session?.user.role !== "student") {
-      toast({
-        title: "Access denied",
-        description: "Only students can enroll in courses. Please sign in with a student account.",
-        variant: "destructive",
-      })
+      toast.error("Access denied : Only students can enroll in courses. Please sign in with a student account.")
       return
     }
 
@@ -77,19 +68,14 @@ export function EnrollmentSection({
         throw new Error(data.message || "Failed to enroll in course")
       }
 
-      toast({
-        title: "Enrollment Successful! 🎉",
-        description: "You have successfully enrolled in this course. Start learning now!",
-      })
+      toast.success("Enrollment Successful! 🎉 You have successfully enrolled in this course. Start learning now!")
 
       router.refresh()
     } catch (error) {
       console.error("Error enrolling in course:", error)
-      toast({
-        title: "Enrollment Failed",
-        description: error instanceof Error ? error.message : "Failed to enroll in course. Please try again.",
-        variant: "destructive",
-      })
+      toast.error(
+        error instanceof Error ? error.message : "Failed to enroll in course. Please try again."
+      )
     } finally {
       setIsEnrolling(false)
     }

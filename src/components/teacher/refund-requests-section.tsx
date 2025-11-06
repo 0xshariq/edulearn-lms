@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { CheckCircle, XCircle, Clock, User, Calendar, DollarSign, FileText, Tag, ExternalLink } from "lucide-react";
 
 interface IRefundRequest {
@@ -42,7 +42,6 @@ interface RefundRequestsSectionProps {
 export default function RefundRequestsSection({ initialRequests }: RefundRequestsSectionProps) {
   const [requests, setRequests] = useState<IRefundRequest[]>(initialRequests);
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
-  const { toast } = useToast();
 
   const handleStatusUpdate = async (requestId: string, status: "accepted" | "rejected") => {
     setLoadingStates(prev => ({ ...prev, [requestId]: true }));
@@ -70,21 +69,14 @@ export default function RefundRequestsSection({ initialRequests }: RefundRequest
               : req
           )
         );
-
-        toast({
-          title: "Success",
-          description: `Refund request ${status} successfully.`,
-        });
+        
+        toast.success(`Refund request ${status} successfully.`);
       } else {
         throw new Error(result.error || "Failed to update refund request");
       }
     } catch (error) {
       console.error("Error updating refund request:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update refund request",
-        variant: "destructive",
-      });
+      toast.error("Failed to update refund request");
     } finally {
       setLoadingStates(prev => ({ ...prev, [requestId]: false }));
     }

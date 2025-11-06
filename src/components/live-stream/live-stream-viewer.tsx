@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { 
   Send, Users, MessageCircle, Play, Settings, Wifi, WifiOff, Clock, Eye, 
   Volume2, VolumeX, Maximize, Minimize, Share2, Flag, Crown, Shield,
@@ -137,18 +137,10 @@ export default function LiveStreamViewer({ liveClassId }: LiveStreamViewerProps)
         setTokenExpiry(Date.now() + (data.expiresIn * 1000))
 
         console.log('Token refreshed successfully')
-        toast({
-          title: "Session Extended",
-          description: "Your session has been refreshed successfully.",
-          variant: "default"
-        })
+        toast.success( "Session Extended : Your session has been refreshed successfully.")
       } else {
         console.error('Failed to refresh token')
-        toast({
-          title: "Session Warning",
-          description: "Your session will expire soon. Please refresh the page.",
-          variant: "destructive"
-        })
+        toast.warning("Session Warning : Your session will expire soon. Please refresh the page.")
         
         // If token refresh fails, try to fetch stream data again after 5 seconds
         setTimeout(() => {
@@ -157,11 +149,7 @@ export default function LiveStreamViewer({ liveClassId }: LiveStreamViewerProps)
       }
     } catch (error) {
       console.error('Error refreshing token:', error)
-      toast({
-        title: "Connection Error",
-        description: "Lost connection to stream. Attempting to reconnect...",
-        variant: "destructive"
-      })
+      toast.error("Connection Error : Lost connection to stream. Attempting to reconnect...")
       
       // If refresh fails, try to reconnect after 5 seconds
       setTimeout(() => {
@@ -406,11 +394,7 @@ export default function LiveStreamViewer({ liveClassId }: LiveStreamViewerProps)
       const quality = Math.random()
       if (quality < 0.1) {
         setConnectionQuality('poor')
-        toast({
-          title: "Connection Warning",
-          description: "Your connection quality has decreased. Consider switching to a lower quality.",
-          variant: "destructive"
-        })
+        toast.warning("Connection Warning : Your connection quality has decreased. Consider switching to a lower quality.")
       } else if (quality > 0.8) {
         setConnectionQuality('excellent')
       }
@@ -419,11 +403,7 @@ export default function LiveStreamViewer({ liveClassId }: LiveStreamViewerProps)
 
   const handleQualityChange = (quality: string) => {
     setSelectedQuality(quality)
-    toast({
-      title: "Quality Changed",
-      description: `Switched to ${quality} quality`,
-      variant: "default"
-    })
+    toast.success(`Quality Changed : Switched to ${quality} quality`)
   }
 
   const toggleMute = () => {
@@ -453,38 +433,22 @@ export default function LiveStreamViewer({ liveClassId }: LiveStreamViewerProps)
 
   const startRecording = () => {
     if (!streamData?.permissions.includes('record')) {
-      toast({
-        title: "Permission Denied",
-        description: "You don't have permission to record this stream.",
-        variant: "destructive"
-      })
+      toast.error("Permission Denied : You don't have permission to record this stream.")
       return
     }
 
     setIsRecording(true)
-    toast({
-      title: "Recording Started",
-      description: "Stream recording has been initiated.",
-      variant: "default"
-    })
+    toast.success("Recording Started : Stream recording has been initiated.")
   }
 
   const moderateUser = (userId: string) => {
     if (!streamData?.permissions.includes('moderate')) {
-      toast({
-        title: "Permission Denied",
-        description: "You don't have permission to moderate users.",
-        variant: "destructive"
-      })
+      toast.error("Permission Denied : You don't have permission to moderate users.")
       return
     }
 
     setModeratedUsers(prev => new Set([...prev, userId]))
-    toast({
-      title: "User Moderated",
-      description: "User has been temporarily muted.",
-      variant: "default"
-    })
+    toast.success("User Moderated : User has been temporarily muted.")
   }
 
   useEffect(() => {
@@ -533,11 +497,7 @@ export default function LiveStreamViewer({ liveClassId }: LiveStreamViewerProps)
 
     // Check if user is moderated
     if (moderatedUsers.has(session.user.id || '')) {
-      toast({
-        title: "Message Blocked",
-        description: "You have been temporarily muted by a moderator.",
-        variant: "destructive"
-      })
+      toast.error("Message Blocked : You have been temporarily muted by a moderator.")
       return
     }
 

@@ -31,7 +31,7 @@ const formatPathName = (path: string) => {
 }
 
 export function Breadcrumbs() {
-  const pathname = usePathname()
+  const pathname = usePathname() || "/"
   const { data: session } = useSession()
 
   // Don't show breadcrumbs on home page or auth pages

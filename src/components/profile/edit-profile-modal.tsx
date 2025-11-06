@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/hooks/use-toast"
+import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -18,10 +18,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Edit, Loader2, User, Camera } from "lucide-react"
-import { z } from "zod"
+} from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Edit, Loader2, User, Camera } from "lucide-react";
+import { z } from "zod";
 
 // Validation schema
 const profileSchema = z.object({
@@ -38,33 +38,41 @@ const profileSchema = z.object({
     .min(10, "Phone number must be at least 10 digits")
     .optional()
     .or(z.literal("")),
-  website: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
-})
+  website: z
+    .string()
+    .url("Please enter a valid URL")
+    .optional()
+    .or(z.literal("")),
+});
 
-type ProfileFormData = z.infer<typeof profileSchema>
+type ProfileFormData = z.infer<typeof profileSchema>;
 
 interface EditProfileModalProps {
   userData: {
-    _id: string
-    name: string
-    email: string
-    bio?: string
-    phone?: string
-    website?: string
-    profileImage?: string
-  }
-  onProfileUpdate?: (updatedData: EditProfileModalProps["userData"]) => void
+    _id: string;
+    name: string;
+    email: string;
+    bio?: string;
+    phone?: string;
+    website?: string;
+    profileImage?: string;
+  };
+  onProfileUpdate?: (updatedData: EditProfileModalProps["userData"]) => void;
 }
 
-export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModalProps) {
-  const { data: session, update: updateSession } = useSession()
-  const { toast } = useToast()
-  const router = useRouter()
-  const [open, setOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isUploadingImage, setIsUploadingImage] = useState(false)
-  const [profileImage, setProfileImage] = useState(userData.profileImage || "")
-  const [errors, setErrors] = useState<Partial<Record<keyof ProfileFormData, string>>>({})
+export function EditProfileModal({
+  userData,
+  onProfileUpdate,
+}: EditProfileModalProps) {
+  const { data: session, update: updateSession } = useSession();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [profileImage, setProfileImage] = useState(userData.profileImage || "");
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof ProfileFormData, string>>
+  >({});
 
   const [formData, setFormData] = useState<ProfileFormData>({
     name: userData.name || "",
@@ -72,115 +80,102 @@ export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModal
     bio: userData.bio || "",
     phone: userData.phone || "",
     website: userData.website || "",
-  })
+  });
 
   const validateField = (name: keyof ProfileFormData, value: string) => {
     try {
-      profileSchema.shape[name].parse(value)
-      setErrors((prev) => ({ ...prev, [name]: undefined }))
-      return true
+      profileSchema.shape[name].parse(value);
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+      return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
-        setErrors((prev) => ({ ...prev, [name]: error.errors[0]?.message }))
+        setErrors((prev) => ({ ...prev, [name]: error.errors[0]?.message }));
       }
-      return false
+      return false;
     }
-  }
+  };
 
   const handleInputChange = (name: keyof ProfileFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    setFormData((prev) => ({ ...prev, [name]: value }));
     // Validate on change for better UX
     if (value.trim()) {
-      validateField(name, value)
+      validateField(name, value);
     } else {
-      setErrors((prev) => ({ ...prev, [name]: undefined }))
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
-  }
+  };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      toast({
-        title: "Invalid file type",
-        description: "Please select an image file",
-        variant: "destructive",
-      })
-      return
+      toast.error("Please select an image file");
+      return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Please select an image smaller than 5MB",
-        variant: "destructive",
-      })
-      return
+      toast.error("Please select an image smaller than 5MB");
+      return;
     }
 
-    setIsUploadingImage(true)
+    setIsUploadingImage(true);
 
     try {
-      const formData = new FormData()
-      formData.append("file", file)
-      formData.append("type", "profile")
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("type", "profile");
 
       const response = await fetch("/api/upload/profile-image", {
         method: "POST",
         body: formData,
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to upload image")
+        throw new Error("Failed to upload image");
       }
 
-      const data = await response.json()
-      setProfileImage(data.url)
+      const data = await response.json();
+      setProfileImage(data.url);
 
-      toast({
-        title: "Image uploaded",
-        description: "Profile image updated successfully",
-      })
+      toast.success("Profile image updated successfully");
     } catch (error) {
-      console.error("Error uploading image:", error)
-      toast({
-        title: "Upload failed",
-        description: "Failed to upload image. Please try again.",
-        variant: "destructive",
-      })
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image. Please try again.");
     } finally {
-      setIsUploadingImage(false)
+      setIsUploadingImage(false);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // Validate all fields
-    const validation = profileSchema.safeParse(formData)
+    const validation = profileSchema.safeParse(formData);
     if (!validation.success) {
-      const fieldErrors: Partial<Record<keyof ProfileFormData, string>> = {}
+      const fieldErrors: Partial<Record<keyof ProfileFormData, string>> = {};
       for (const error of validation.error.errors) {
-        const field = error.path[0] as keyof ProfileFormData
-        fieldErrors[field] = error.message
+        const field = error.path[0] as keyof ProfileFormData;
+        fieldErrors[field] = error.message;
       }
-      setErrors(fieldErrors)
-      return
+      setErrors(fieldErrors);
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
       const updateData = {
         ...formData,
         profileImage,
-      }
+      };
 
       // Use role-specific API endpoint
-      const apiEndpoint = `/api/${session?.user?.role}/profile`
+      const apiEndpoint = `/api/${session?.user?.role}/profile`;
 
       const response = await fetch(apiEndpoint, {
         method: "PUT",
@@ -188,14 +183,14 @@ export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModal
           "Content-Type": "application/json",
         },
         body: JSON.stringify(updateData),
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Failed to update profile")
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update profile");
       }
 
-      const result = await response.json()
+      const result = await response.json();
 
       // Update session if name or email changed
       if (session?.user) {
@@ -206,34 +201,31 @@ export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModal
             name: result.user.name,
             email: result.user.email,
           },
-        })
+        });
       }
 
       // Call the callback to update parent component
       if (onProfileUpdate) {
-        onProfileUpdate(result.user)
+        onProfileUpdate(result.user);
       }
 
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully",
-      })
+      toast.success("Profile updated successfully");
 
-      setOpen(false)
+      setOpen(false);
 
       // Refresh the page to show updated data
-      router.refresh()
+      router.refresh();
     } catch (error) {
-      console.error("Error updating profile:", error)
-      toast({
-        title: "Update failed",
-        description: error instanceof Error ? error.message : "Failed to update profile. Please try again.",
-        variant: "destructive",
-      })
+      console.error("Error updating profile:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to update profile. Please try again."
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -242,18 +234,18 @@ export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModal
       bio: userData.bio || "",
       phone: userData.phone || "",
       website: userData.website || "",
-    })
-    setProfileImage(userData.profileImage || "")
-    setErrors({})
-  }
+    });
+    setProfileImage(userData.profileImage || "");
+    setErrors({});
+  };
 
   return (
     <Dialog
       open={open}
       onOpenChange={(newOpen) => {
-        setOpen(newOpen)
+        setOpen(newOpen);
         if (!newOpen) {
-          resetForm()
+          resetForm();
         }
       }}
     >
@@ -266,7 +258,9 @@ export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModal
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
-          <DialogDescription>Update your profile information and settings.</DialogDescription>
+          <DialogDescription>
+            Update your profile information and settings.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -275,7 +269,12 @@ export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModal
             <div className="relative">
               <Avatar className="w-24 h-24">
                 <AvatarImage
-                  src={profileImage || `/placeholder.svg?height=96&width=96&text=${formData.name.charAt(0)}`}
+                  src={
+                    profileImage ||
+                    `/placeholder.svg?height=96&width=96&text=${formData.name.charAt(
+                      0
+                    )}`
+                  }
                 />
                 <AvatarFallback className="text-2xl">
                   <User className="h-12 w-12" />
@@ -284,7 +283,11 @@ export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModal
               <div className="absolute -bottom-2 -right-2">
                 <Label htmlFor="profile-image" className="cursor-pointer">
                   <div className="bg-primary text-primary-foreground rounded-full p-2 hover:bg-primary/90 transition-colors">
-                    {isUploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                    {isUploadingImage ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Camera className="h-4 w-4" />
+                    )}
                   </div>
                 </Label>
                 <Input
@@ -300,7 +303,9 @@ export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModal
             <p className="text-sm text-muted-foreground text-center">
               Click the camera icon to upload a new profile picture
               <br />
-              <span className="text-xs">Max size: 5MB. Formats: JPG, PNG, GIF</span>
+              <span className="text-xs">
+                Max size: 5MB. Formats: JPG, PNG, GIF
+              </span>
             </p>
           </div>
 
@@ -318,7 +323,9 @@ export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModal
                 placeholder="Enter your full name"
                 className={errors.name ? "border-destructive" : ""}
               />
-              {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+              {errors.name && (
+                <p className="text-sm text-destructive">{errors.name}</p>
+              )}
             </div>
 
             {/* Email Field */}
@@ -334,7 +341,9 @@ export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModal
                 placeholder="Enter your email address"
                 className={errors.email ? "border-destructive" : ""}
               />
-              {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email}</p>
+              )}
             </div>
 
             {/* Phone Field */}
@@ -348,7 +357,9 @@ export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModal
                 placeholder="Enter your phone number"
                 className={errors.phone ? "border-destructive" : ""}
               />
-              {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+              {errors.phone && (
+                <p className="text-sm text-destructive">{errors.phone}</p>
+              )}
             </div>
 
             {/* Website Field */}
@@ -362,7 +373,9 @@ export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModal
                 placeholder="https://your-website.com"
                 className={errors.website ? "border-destructive" : ""}
               />
-              {errors.website && <p className="text-sm text-destructive">{errors.website}</p>}
+              {errors.website && (
+                <p className="text-sm text-destructive">{errors.website}</p>
+              )}
             </div>
 
             {/* Bio Field */}
@@ -377,7 +390,9 @@ export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModal
                 className={errors.bio ? "border-destructive" : ""}
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                {errors.bio && <span className="text-destructive">{errors.bio}</span>}
+                {errors.bio && (
+                  <span className="text-destructive">{errors.bio}</span>
+                )}
                 <span className="ml-auto">{formData.bio?.length || 0}/500</span>
               </div>
             </div>
@@ -406,5 +421,5 @@ export function EditProfileModal({ userData, onProfileUpdate }: EditProfileModal
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

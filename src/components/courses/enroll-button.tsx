@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 
@@ -14,7 +14,6 @@ interface EnrollButtonProps {
 
 export default function EnrollButton({ courseId, courseName, price }: EnrollButtonProps) {
   const [isEnrolling, setIsEnrolling] = useState(false)
-  const { toast } = useToast()
   const router = useRouter()
 
   const handleFreeEnroll = async () => {
@@ -32,19 +31,14 @@ export default function EnrollButton({ courseId, courseName, price }: EnrollButt
         throw new Error(error.message || "Failed to enroll in course")
       }
 
-      toast({
-        title: "Enrollment Successful",
-        description: "You have successfully enrolled in this course.",
-      })
+      toast.success("You have successfully enrolled in this course.")
 
       router.refresh()
     } catch (error) {
       console.error("Error enrolling in course:", error)
-      toast({
-        title: "Enrollment Failed",
-        description: error instanceof Error ? error.message : "Failed to enroll in course. Please try again.",
-        variant: "destructive",
-      })
+      toast.error(
+        error instanceof Error ? error.message : "Failed to enroll in course. Please try again."
+      )
     } finally {
       setIsEnrolling(false)
     }

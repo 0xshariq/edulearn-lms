@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import {
   Upload,
   Video,
@@ -133,7 +133,6 @@ export function EnhancedVideoUpload({
   enableCompression = true,
   enableTranscoding = true,
 }: VideoUploadProps) {
-  const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   
@@ -273,11 +272,7 @@ export function EnhancedVideoUpload({
     // Validate file
     const validation = validateFile(file)
     if (!validation.valid) {
-      toast({
-        title: 'Invalid file',
-        description: validation.error,
-        variant: 'destructive',
-      })
+      toast.error('Invalid file', validation.error)
       return
     }
 
@@ -292,16 +287,9 @@ export function EnhancedVideoUpload({
       const fileName = file.name.replace(/\.[^/.]+$/, '')
       setTitle(fileName)
       
-      toast({
-        title: 'File selected',
-        description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)`,
-      })
+      toast(`File selected: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)`)
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to process video file',
-        variant: 'destructive',
-      })
+      toast.error('Failed to process video file')
     }
   }, [validateFile, extractVideoMetadata, toast])
 
@@ -362,11 +350,7 @@ export function EnhancedVideoUpload({
       return data
     } catch (error) {
       console.error('Upload initialization failed:', error)
-      toast({
-        title: 'Upload failed',
-        description: 'Failed to initialize upload',
-        variant: 'destructive',
-      })
+      toast.error('Failed to initialize upload')
       throw error
     }
   }, [videoFile, courseId, chunkSize, toast])
@@ -478,11 +462,8 @@ export function EnhancedVideoUpload({
       const data = await response.json()
       
       setUploadProgress(prev => ({ ...prev, status: 'completed' }))
-      
-      toast({
-        title: 'Upload successful',
-        description: 'Video uploaded and processed successfully',
-      })
+
+      toast.success('Upload successful: Video uploaded and processed successfully')
 
       if (onSuccess) {
         onSuccess(data.video?.url)
@@ -497,12 +478,8 @@ export function EnhancedVideoUpload({
         status: 'error',
         error: 'Failed to complete upload'
       }))
-      
-      toast({
-        title: 'Upload failed',
-        description: 'Failed to complete video upload',
-        variant: 'destructive',
-      })
+
+      toast.error('Upload Failed : Failed to complete video upload', error)
     }
   }, [
     uploadId,
@@ -528,20 +505,12 @@ export function EnhancedVideoUpload({
   // Handle upload
   const handleUpload = useCallback(async () => {
     if (!videoFile) {
-      toast({
-        title: 'No file selected',
-        description: 'Please select a video file to upload',
-        variant: 'destructive',
-      })
+      toast.info('No file selected: Please select a video file to upload')
       return
     }
 
     if (!title.trim()) {
-      toast({
-        title: 'Title required',
-        description: 'Please enter a title for the video',
-        variant: 'destructive',
-      })
+      toast.info('Title required: Please enter a title for the video')  
       return
     }
 

@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { Upload, Video, X } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 
@@ -20,7 +20,6 @@ const MAX_SMALL_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 const MAX_LARGE_FILE_SIZE = 1024 * 1024 * 1024; // 1GB
 
 export function VideoUploadModal({ courseId, onSuccess }: VideoUploadModalProps) {
-  const { toast } = useToast()
   const [open, setOpen] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -34,20 +33,12 @@ export function VideoUploadModal({ courseId, onSuccess }: VideoUploadModalProps)
       const file = e.target.files[0]
 
       if (!file.type.startsWith("video/")) {
-        toast({
-          title: "Invalid file type",
-          description: "Please select a video file",
-          variant: "destructive",
-        })
+        toast.error("Invalid file type: Please select a video file")
         return
       }
 
       if (file.size > MAX_LARGE_FILE_SIZE) {
-        toast({
-          title: "File too large",
-          description: "Please select a video file smaller than 1GB",
-          variant: "destructive",
-        })
+        toast.error("File too large : Please select a video file smaller than 1GB")
         return
       }
 
@@ -69,20 +60,12 @@ export function VideoUploadModal({ courseId, onSuccess }: VideoUploadModalProps)
     e.preventDefault()
 
     if (!videoFile) {
-      toast({
-        title: "Error",
-        description: "Please select a video file to upload",
-        variant: "destructive",
-      })
+      toast.error("Please select a video file to upload")
       return
     }
 
     if (!title.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a title for the video",
-        variant: "destructive",
-      })
+      toast.error("Please enter a title for the video")
       return
     }
 
@@ -131,12 +114,7 @@ export function VideoUploadModal({ courseId, onSuccess }: VideoUploadModalProps)
         const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
 
         if (!cloudName || !uploadPreset) {
-          toast({
-            title: "Cloudinary config missing",
-            description:
-              "Check your .env.local for NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET.",
-            variant: "destructive",
-          })
+          toast.error("Cloudinary config missing : Check your .env.local for NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET.")
           setUploading(false)
           return
         }
@@ -189,10 +167,7 @@ export function VideoUploadModal({ courseId, onSuccess }: VideoUploadModalProps)
       if (progressInterval) clearInterval(progressInterval)
       setUploadProgress(100)
 
-      toast({
-        title: "Success",
-        description: "Video uploaded successfully",
-      })
+      toast.success("Video uploaded successfully")
 
       resetForm()
       setOpen(false)
@@ -203,11 +178,7 @@ export function VideoUploadModal({ courseId, onSuccess }: VideoUploadModalProps)
     } catch (error) {
       if (progressInterval) clearInterval(progressInterval)
       console.error("Error uploading video:", error)
-      toast({
-        title: "Error",
-        description: "Failed to upload video. Please try again.",
-        variant: "destructive",
-      })
+      toast.error("Failed to upload video. Please try again.")
     } finally {
       setUploading(false)
     }

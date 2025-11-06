@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { Play, Users, Clock } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -37,19 +37,11 @@ export default function StudentLiveClassList() {
         setLiveClasses(data.liveClasses || [])
       } else {
         console.error('Failed to fetch live classes')
-        toast({
-          title: "Error",
-          description: "Failed to fetch live classes",
-          variant: "destructive"
-        })
+        toast.error("Failed to fetch live classes")
       }
     } catch (error) {
       console.error('Error fetching live classes:', error)
-      toast({
-        title: "Error",
-        description: "Failed to fetch live classes",
-        variant: "destructive"
-      })
+      toast.error("Failed to fetch live classes")
     } finally {
       setLoading(false)
     }
